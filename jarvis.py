@@ -12,7 +12,7 @@ global stop
 stop = False
 pin = 7
 counter = 0
-filename = 'newgrange.wav'
+filename = 'oobleck.wav'
 wave_obj = sa.WaveObject.from_wave_file(filename)
 
 GPIO.setmode(GPIO.BOARD)
@@ -78,7 +78,7 @@ def callback_fn(channel):
         pwm.set_pwm(JAW, 0, jaw_pulse)
         pwm.set_pwm(EYE_H, 0, eye_h_pulse)
         pwm.set_pwm(EYE_V, 0, eye_v_pulse)
-        time.sleep(random.randrange(100,300)/1000)
+        time.sleep(random.randrange(100,500)/1000)
     resetExpression()
 
 signal.signal(signal.SIGINT, handler)
