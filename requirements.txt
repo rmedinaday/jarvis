@@ -1,0 +1,11 @@
+Adafruit-GPIO >= 1.0.3
+Adafruit-PCA9685 >= 1.0.1
+Adafruit-PureIO >= 1.1.11
+Jetson.GPIO >= 2.1.5
+liquidcrystal-i2c-linux >= 1.0.0
+simpleaudio >= 1.0.4
+smbus >= 1.1.post2
+spidev >= 3.5
+
+
+
