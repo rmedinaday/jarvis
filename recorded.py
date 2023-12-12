@@ -1,12 +1,13 @@
 #! /usr/bin/python3
 
-
+import sys
 import Jetson.GPIO as GPIO
 import simpleaudio as sa
 import time
 import signal
 import Adafruit_PCA9685
 import random
+from settings import get_config
 
 global stop
 stop = False
