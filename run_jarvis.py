@@ -5,6 +5,7 @@ import sys
 import argparse
 from settings import get_config
 import head
+import time
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(
@@ -26,4 +27,13 @@ if __name__ == "__main__":
         print(f"ERROR: Could not open configuration file: {args.conf}")
         sys.exit(1)
 
-    
+    the_head = head.head(conf)
+    print(f'The current head status is: {the_head.get_face()}')
+    time.sleep(1)
+    the_head.random_face()
+    print(f'The current head status is: {the_head.get_face()}')
+    time.sleep(1)
+    the_head.neutral_face()
+    print(f'The current head status is: {the_head.get_face()}')
+
+

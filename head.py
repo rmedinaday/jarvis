@@ -1,27 +1,51 @@
-import Adafruit_PCA9685
-import time
-import random
+import servo
+import importlib
+import dummyPwm
+try:
+    import Adafruit_PCA9685
+except ImportError:
+    pass
 
 class head:
     def __init__(self, config):
         self.config = config[self.__class__.__name__]
-        self.eye_h_range = [self.config['eye_h']['left'], self.config['eye_h']['right']].sort()
-        self.eye_v_range = [self.config['eye_v']['up'], self.config['eye_v']['down']].sort()
-        self.jaw_range = [self.config['jaw']['open'], self.config['jaw']['closed']].sort()
-        self.pwm = Adafruit_PCA9685.PCA9685(
-                address=self.config['address'], busnum=self.config['bus'])
-        self.pwm.set_pwm_freq(self.config['freq'])
+        self.servos = {}
+        self.validate_config()
+        self.bus = self.config['bus']
+        self.address = self.config['address']
+        self.freq = self.config['freq']
+        importlib.import_module('time')
+        try:
+            self.controller = Adafruit_PCA9685.PCA9685(
+                    address=self.address, busnum=self.bus)
+        except NameError:
+            self.controller = dummyPwm.dummyPwm(
+                address=self.address, busnum=self.bus)
+        self.controller.set_pwm_freq(self.freq)
+        for name in self.config['servos'].keys():
+            self.servos[name] = servo.servo(self.controller, name, self.config['servos'][name])
+    
+    def validate_config(self):
+        params = self.config.keys()
+        if 'bus' not in params:
+            raise KeyError(f"Missing parameter 'bus' for {self.name}")
+        if 'address' not in params:
+            raise KeyError(f"Missing parameter 'address' for {self.name}")
+        if 'freq' not in params:
+            raise KeyError(f"Missing parameter 'freq' for {self.name}")
+        if 'servos' not in params:
+            raise KeyError(f"Missing parameter 'servos' for {self.name}")
 
     def neutral_face(self):
-        self.pwm.set_pwm(self.config['jaw']['id'], 0, self.config['jaw']['closed'])
-        self.pwm.set_pwm(self.config['eye_h']['id'], 0, self.config['eye_h']['center'])
-        self.pwm.set_pwm(self.config['eye_v']['id'], 0, self.config['eye_v']['center'])
-        self.pwm.set_pwm(self.config['turn']['id'], 0, self.config['turn']['center'])
+        for i in self.servos.keys():
+            self.servos[i].move(self.servos[i].get_center())
 
     def random_face(self):
-        eye_h_pulse = random.randrange(self.eye_h_range[0], self.eye_h_range[1])
-        eye_v_pulse = random.randrange(self.eye_v_range[0], self.eye_v_range[1])
-        jaw_pulse = random.randrange(self.jaw_range[0], self.jaw_range[1])
-        self.pwm.set_pwm(self.config['eye_h']['id'], 0, eye_h_pulse)
-        self.pwm.set_pwm(self.config['eye_v']['id'], 0, eye_v_pulse)
-        self.pwm.set_pwm(self.config['jaw']['id'], 0, jaw_pulse)
+        for i in self.servos.keys():
+            self.servos[i].move_random()
+    
+    def get_face(self):
+        state = {}
+        for i in self.servos.keys():
+            state[i] = self.servos[i].get_position()
+        return state
