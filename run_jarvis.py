@@ -37,10 +37,10 @@ def callback_fn(channel):
     print("Callback called from channel %s" % channel)
     play_obj = wave_obj.play()
     while play_obj.is_playing():
-        head.random_face()
+        the_head.random_face()
         print(f'The current head status is: {the_head.get_face()}')
         time.sleep(random.randrange(100,500)/1000)
-    head.neutral_face()
+    the_head.neutral_face()
 
 if __name__ == "__main__":
     args = parse_cmdline()
