@@ -4,8 +4,13 @@ import os
 import sys
 import argparse
 from settings import get_config
+import Jetson.GPIO as GPIO
+import signal
 import head
 import time
+import simpleaudio
+import random
+
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(
@@ -15,6 +20,27 @@ def parse_cmdline():
                         help="configuration file (default: %(default)s)")
     args = parser.parse_args()
     return args
+
+def setup_gpio(config):
+    pin = config['input']['trigger']['pin']
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(pin, GPIO.IN)
+    GPIO.add_event_detect(pin, GPIO.FALLING, callback=callback_fn)
+
+def handler(signum, frame):
+    msg = "Ctrl-C pressed, quitting..."
+    print(msg)
+    global stop
+    stop = True
+
+def callback_fn(channel):
+    print("Callback called from channel %s" % channel)
+    play_obj = wave_obj.play()
+    while play_obj.is_playing():
+        head.random_face()
+        print(f'The current head status is: {the_head.get_face()}')
+        time.sleep(random.randrange(100,500)/1000)
+    head.neutral_face()
 
 if __name__ == "__main__":
     args = parse_cmdline()
@@ -27,13 +53,16 @@ if __name__ == "__main__":
         print(f"ERROR: Could not open configuration file: {args.conf}")
         sys.exit(1)
 
+    global stop
+    stop = False
+
     the_head = head.head(conf)
-    print(f'The current head status is: {the_head.get_face()}')
-    time.sleep(1)
-    the_head.random_face()
-    print(f'The current head status is: {the_head.get_face()}')
-    time.sleep(1)
-    the_head.neutral_face()
-    print(f'The current head status is: {the_head.get_face()}')
+    wave_obj = simpleaudio.WaveObject.from_wave_file(conf['audio']['file'])
+    setup_gpio(conf)
+    signal.signal(signal.SIGINT, handler)
+    print("Ready! Press Crtl-C to exit")
 
+    while not stop:
+        time.sleep(1)
 
+    GPIO.cleanup()
