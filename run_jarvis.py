@@ -3,14 +3,11 @@
 import os
 import sys
 import argparse
-from settings import get_config
-import Jetson.GPIO as GPIO
 import signal
-import head
 import time
 import simpleaudio
 import random
-
+import robothead
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(
@@ -20,12 +17,6 @@ def parse_cmdline():
                         help="configuration file (default: %(default)s)")
     args = parser.parse_args()
     return args
-
-def setup_gpio(config):
-    pin = config['input']['trigger']['pin']
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(pin, GPIO.IN)
-    GPIO.add_event_detect(pin, GPIO.FALLING, callback=callback_fn)
 
 def handler(signum, frame):
     msg = "Ctrl-C pressed, quitting..."
@@ -46,7 +37,7 @@ if __name__ == "__main__":
     args = parse_cmdline()
     if os.access(args.conf, os.R_OK):
         try:
-           conf = get_config(args.conf)
+           conf = robothead.get_config(args.conf)
         except:
             print(f"Could not parse confguration file: {args.conf}")
     else:
@@ -56,13 +47,13 @@ if __name__ == "__main__":
     global stop
     stop = False
 
-    the_head = head.head(conf)
+    the_head = robothead.head(conf)
     wave_obj = simpleaudio.WaveObject.from_wave_file(conf['audio']['file'])
-    setup_gpio(conf)
+    robothead.gpio.setup_gpio(conf, callback_fn)
     signal.signal(signal.SIGINT, handler)
     print("Ready! Press Crtl-C to exit")
 
     while not stop:
         time.sleep(1)
 
-    GPIO.cleanup()
+    robothead.gpio.cleanup_gpio()
